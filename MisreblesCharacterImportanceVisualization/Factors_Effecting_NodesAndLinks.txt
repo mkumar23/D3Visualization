@@ -1,0 +1,14 @@
+Square root scaling is a better scaling approach as there is a vast domain of
+coolness value for characters. If we use linear scale range increases linearly 
+due to this some nodes have very small size whereas others are significantly large. 
+
+when we use square root scaling increment rate reduces so large domain can be mapped.
+
+Filtering node label on the basis of coolness level improves the graph. As it reduces 
+cluttering by avoiding information which are not important. 
+
+To make the graph more readable I made following changes:
+	* adjusted the font size 
+	* Link distance : Increased link distance so that nodes and edges can be distinguished.
+	* Range adjustment for node size: So that smaller nodes are visible and larger ones are not overwhelming.
+	* Tool tip back ground: Background of tool tip is set as white so that tool tip remain readable when hovering over other nodes.

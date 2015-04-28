@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Car Properties Bar</title>
+	<script type="text/javascript" src="d3/d3.v3.min.js"></script>	
+	<style>
+  body {
+    font: 10px sans-serif;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  
+  .bar:hover {
+    fill: orangered;
+  }
+  
+  .x.axis line {
+  stroke: #000;
+}
+
+</style>
+
+</head>
+<body bgcolor='#FFC'>
+	<div id="chart"></div>
+</body>
+
+	<script>
+var margin = {top: 80, right: 80, bottom: 70, left: 160},
+    width = 665 - margin.left - margin.right,
+    height = 420 - margin.top - margin.bottom;
+
+var formatPercent = d3.format("d");
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .3);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .tickFormat(formatPercent);
+
+var data = []
+var color = d3.scale.category20();
+var scale = d3.scale.sqrt().range([0,19]);
+
+var retail = [0,0,0,0]
+var retailmin = [900000,900000,900000,900000,900000]
+var retailmax = [0,0,0,0]
+var engine = [0,0,0,0]
+var enginemin = [900000,900000,900000,900000,900000]
+var enginemax = [0,0,0,0]
+var HP = [0,0,0,0]
+var HPmin = [900000,900000,900000,900000,900000]
+var HPmax = [0,0,0,0]
+var CityMPG = [0,0,0,0]
+var CityMPGmin = [900000,900000,900000,900000,900000]
+var CityMPGmax = [0,0,0,0]
+var HwyMPG = [0,0,0,0]
+var HwyMPGmin = [900000,900000,900000,900000,900000]
+var HwyMPGmax = [0,0,0,0]
+var cnt = [0,0,0,0]
+var car = ['Audi','BMW','Chevrolet','Jaguar']
+
+d3.json("cars.json", function(error, cardata) {
+  for(i=0;i<cardata.length;i++)
+  {
+	for(j=0;j<4;j++){
+			if(cardata[i]['VehicleName'].indexOf(car[j]) > -1){
+				retail[j] += Number(cardata[i]['RetailPrice']);
+				if(retailmax[j] < Number(cardata[i]['RetailPrice'])){
+					retailmax[j] = Number(cardata[i]['RetailPrice']); 
+				}
+				if(retailmin[j] > Number(cardata[i]['RetailPrice'])){
+					retailmin[j] = Number(cardata[i]['RetailPrice']); 
+				}
+				engine[j] += Number(cardata[i]['EngineSize']);
+				if(enginemax[j] < Number(cardata[i]['EngineSize'])){
+					enginemax[j] = Number(cardata[i]['EngineSize']); 
+				}
+				if(enginemin[j] > Number(cardata[i]['EngineSize'])){
+					enginemin[j] = Number(cardata[i]['EngineSize']); 
+				}
+				
+				HP[j] += Number(cardata[i]['HP']);
+				if(HPmax[j] < Number(cardata[i]['HP'])){
+					HPmax[j] = Number(cardata[i]['HP']); 
+				}
+				if(HPmin[j] > Number(cardata[i]['HP'])){
+					HPmin[j] = Number(cardata[i]['HP']); 
+				}
+				
+				CityMPG[j] += Number(cardata[i]['CityMPG']);
+				if(CityMPGmax[j] < Number(cardata[i]['CityMPG'])){
+					CityMPGmax[j] = Number(cardata[i]['CityMPG']); 
+				}
+				if(CityMPGmin[j] > Number(cardata[i]['CityMPG'])){
+					CityMPGmin[j] = Number(cardata[i]['CityMPG']); 
+				}
+				
+				HwyMPG[j] += Number(cardata[i]['HwyMPG']);
+				if(HwyMPGmax[j] < Number(cardata[i]['HwyMPG'])){
+					HwyMPGmax[j] = Number(cardata[i]['HwyMPG']); 
+				}
+				if(HwyMPGmin[j] > Number(cardata[i]['HwyMPG'])){
+					HwyMPGmin[j] = Number(cardata[i]['HwyMPG']); 
+				}
+				cnt[j]++;
+			}
+	}
+  }
+  for(i=0;i<4;i++){
+	data[i] = {"VehicleName":car[i],"RetailPrice":retail[i]/cnt[i],"EngineSize":engine[i]/cnt[i],"HP":HP[i]/cnt[i],"CityMPG":CityMPG[i]/cnt[i],"HwyMPG":HwyMPG[i]/cnt[i],"Pos":((i*10) + 10),"retailmax":retailmax[i],"retailmin":retailmin[i],"enginemax":enginemax[i],"enginemin":enginemin[i],"HPmax":HPmax[i],"HPmin":HPmin[i],"CityMPGmax":CityMPGmax[i],"CityMPGmin":CityMPGmin[i],"HwyMPGmax":HwyMPGmax[i],"HwyMPGmin":HwyMPGmin[i]};
+  }
+  x.domain(data.map(function(d) { return d.VehicleName; }));
+  
+var lst = ['RetailPrice','EngineSize','HP']
+
+var colorlst = ['#fec44f','#ec7014','#993404']
+var ylabellst = ['Retail Price ($)','Engine Size (l)','Horse Power']
+
+y.domain([0, d3.max(data, function(d) { return d.retailmax; })]);
+
+var svg = d3.select("body").append("svg")
+	.attr("style", "outline:thick groove grey;")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
+	
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+	  .selectAll(".tick text")
+      .call(wrap, x.rangeBand());
+  
+  svg.append("text")
+	.attr("class", "x label")
+	.attr("text-anchor", "Start")
+    .attr("y", 4)
+    .attr("dy", ".75em")
+    .attr("transform", "translate(200,320)")
+	.style("font-size","16px")
+	.style("font-weight","bold")
+	.text("Cars");
+  
+  svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .style("text-decoration", "underline")  
+        .text(ylabellst[0]+" vs Cars Graph");
+		
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+	  .append("text")
+      .attr("transform", "rotate(-90), translate(-180,-60)")
+      .attr("y", 6)
+      .attr("dy", ".191em")
+	  .style("font-size","14px")
+	  .style("font-weight","bold")
+      .style("text-anchor", "start")
+      .text(ylabellst[0]);
+  	
+	maxC=svg.selectAll("maxC")
+    .data(data)
+	.enter().append("circle")
+    .attr("cy", function(d) { return y(d.retailmax); })
+    .attr("cx", function(d, i) { return x(d.VehicleName)+30; })
+	.style("fill",colorlst[2])
+    .attr("r", 6);
+	
+	avgC=svg.selectAll("avgC")
+    .data(data)
+	.enter().append("rect")
+    .attr("y", function(d) { return y(d.RetailPrice); })
+    .attr("x", function(d, i) { return x(d.VehicleName)+21; })
+	.style("fill",colorlst[1])
+	.attr("height", 4)
+    .attr("width", 18);
+
+	minC=svg.selectAll("minC")
+    .data(data)
+	.enter().append("circle")
+    .attr("cy", function(d) { return y(d.retailmin); })
+    .attr("cx", function(d, i) { return x(d.VehicleName)+30; })
+	.style("fill",colorlst[0])
+    .attr("r", 6);	
+
+var legend = svg.selectAll(".legend")
+      .data(function(d){
+        return ['Minimum','Average','Max'];
+      })
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(40," + ((i * 15) -20) + ")"; });
+
+      legend.append("rect")
+      .attr("x", width - 50)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", function(d,i){
+        return colorlst[i];
+      });
+
+      legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "start")
+      .text(function(d) { return d; });	
+
+y.domain([0, d3.max(data, function(d) { return d.enginemax; })]);
+
+var svg = d3.select("body").append("svg")
+	.attr("style", "outline:thick groove grey;")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
+	
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+	  .selectAll(".tick text")
+      .call(wrap, x.rangeBand());
+  
+  svg.append("text")
+	.attr("class", "x label")
+	.attr("text-anchor", "Start")
+    .attr("y", 4)
+    .attr("dy", ".75em")
+    .attr("transform", "translate(200,320)")
+	.style("font-size","16px")
+	.style("font-weight","bold")
+	.text("Cars");
+  
+  svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .style("text-decoration", "underline")  
+        .text(ylabellst[1]+" vs Cars Graph");
+		
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+	  .append("text")
+      .attr("transform", "rotate(-90), translate(-180,-60)")
+      .attr("y", 6)
+      .attr("dy", ".191em")
+	  .style("font-size","14px")
+	  .style("font-weight","bold")
+      .style("text-anchor", "start")
+      .text(ylabellst[1]);
+	
+ maxC=svg.selectAll("maxC")
+    .data(data)
+	.enter().append("circle")
+    .attr("cy", function(d) { return y(d.enginemax); })
+    .attr("cx", function(d, i) { return x(d.VehicleName)+30; })
+	.style("fill",colorlst[2])
+    .attr("r", 6);
+	
+	avgC=svg.selectAll("avgC")
+    .data(data)
+	.enter().append("rect")
+    .attr("y", function(d) { return y(d.EngineSize); })
+    .attr("x", function(d, i) { return x(d.VehicleName)+21; })
+	.style("fill",colorlst[1])
+	.attr("height", 4)
+    .attr("width", 18);
+
+	minC=svg.selectAll("minC")
+    .data(data)
+	.enter().append("circle")
+    .attr("cy", function(d) { return y(d.enginemin); })
+    .attr("cx", function(d, i) { return x(d.VehicleName)+30; })
+	.style("fill",colorlst[0])
+    .attr("r", 6);	
+	
+	legend = svg.selectAll(".legend")
+      .data(function(d){
+        return ['Minimum','Average','Max'];
+      })
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(40," + ((i * 15) -20) + ")"; });
+
+      legend.append("rect")
+      .attr("x", width - 50)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", function(d,i){
+        return colorlst[i];
+      });
+
+      legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "start")
+      .text(function(d) { return d; });	
+	
+y.domain([0, d3.max(data, function(d) { return d.HPmax; })]);
+
+var svg = d3.select("body").append("svg")
+	.attr("style", "outline:thick groove grey;")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
+	
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+	  .selectAll(".tick text")
+      .call(wrap, x.rangeBand());
+  
+  svg.append("text")
+	.attr("class", "x label")
+	.attr("text-anchor", "Start")
+    .attr("y", 4)
+    .attr("dy", ".75em")
+    .attr("transform", "translate(200,320)")
+	.style("font-size","16px")
+	.style("font-weight","bold")
+	.text("Cars");
+  
+  svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .style("text-decoration", "underline")  
+        .text(ylabellst[0]+" vs Cars Graph");
+		
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+	  .append("text")
+      .attr("transform", "rotate(-90), translate(-180,-60)")
+      .attr("y", 6)
+      .attr("dy", ".191em")
+	  .style("font-size","14px")
+	  .style("font-weight","bold")
+      .style("text-anchor", "start")
+      .text(ylabellst[2]);
+	
+  maxC=svg.selectAll("maxC")
+    .data(data)
+	.enter().append("circle")
+    .attr("cy", function(d) { return y(d.HPmax); })
+    .attr("cx", function(d, i) { return x(d.VehicleName)+30; })
+	.style("fill",colorlst[2])
+    .attr("r", 6);
+	
+	avgC=svg.selectAll("avgC")
+    .data(data)
+	.enter().append("rect")
+    .attr("y", function(d) { return y(d.HP); })
+    .attr("x", function(d, i) { return x(d.VehicleName)+21; })
+	.style("fill",colorlst[1])
+	.attr("height", 4)
+    .attr("width", 18);
+
+	minC=svg.selectAll("minC")
+    .data(data)
+	.enter().append("circle")
+    .attr("cy", function(d) { return y(d.HPmin); })
+    .attr("cx", function(d, i) { return x(d.VehicleName)+30; })
+	.style("fill",colorlst[0])
+    .attr("r", function(d) { return 6; });	
+	
+	legend = svg.selectAll(".legend")
+      .data(function(d){
+        return ['Minimum','Average','Max'];
+      })
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(40," + ((i * 15) -20) + ")"; });
+
+      legend.append("rect")
+      .attr("x", width - 50)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", function(d,i){
+        return colorlst[i];
+      });
+
+      legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "start")
+      .text(function(d) { return d; });	
+
+//x.domain(data.map(function(d) { return d['Vehicle Name']; }));
+var color=["#fec44f","#fe9929","#ec7014","#cc4c02","#8c2d04"];
+
+var mpgsvg = d3.select("body").append("svg")
+	.attr("style", "outline:thick groove grey;")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")"); 
+	
+      x.rangeRoundBands([0, width], 0);
+      y.domain([0, d3.max(data, function(d) { if(d.CityMPGmax>d.HwyMPGmax){
+        return d.CityMPGmax
+      } else{
+        return d.HwyMPGmax;
+      }})]);
+
+      newx=d3.scale.ordinal().rangeRoundBands([20, 50+width/3.5], .1).domain(data.map(function(d) { return d.VehicleName; }));
+
+      var newxAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom")
+      .tickValues([]);
+
+      mpgXaxis=mpgsvg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(newxAxis);
+
+      mpgXaxis.selectAll(".tick text")
+      .call(wrap, x.rangeBand());
+
+      mpgXaxis.append("text")
+      .text("Attributes")
+	  .style("font-size","14px")
+	  .style("font-weight","bold")
+      .attr("transform","translate(160,60)")
+      .style("font-weight","bold");
+
+      mpgsvg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .append("text")
+      .attr("transform", "rotate(-90),translate(-80,-60)")
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+	  .style("font-size","14px")
+      .text("Miles Per Gallon")
+      .style("font-weight","bold");
+
+      var citympg = mpgsvg.append("g")
+      .attr("transform", function(d) { return "translate(0,0)"; });
+      
+      citympg.append("text")
+      .text("City MPG")
+	  .style("font-size","12px")
+	  .style("font-weight","bold")
+      .attr("transform","translate(70,290)");
+
+     var bar = citympg.selectAll(".bar")
+      .data(data)
+      .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return newx(d.VehicleName); })
+      .attr("width", newx.rangeBand())
+      .attr("y", function(d) { 
+        return y(d.CityMPGmax); 
+      })
+      .attr("height", function(d) { return height - y(d.CityMPGmax - d.CityMPGmin); })
+      .attr("fill",function(d,i){
+        return color[i];
+      });
+	  
+	 avgC=mpgsvg.selectAll("avgC")
+    .data(data)
+	.enter().append("rect")
+    .attr("y", function(d) { return y(d.CityMPG); })
+    .attr("x", function(d) { return newx(d.VehicleName); })
+	.style("fill",'#5c5c5c')
+	.attr("height", 4)
+    .attr("width", newx.rangeBand());
+	
+	
+	mpgsvg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "20px") 
+        .style("text-decoration", "underline")  
+        .text("Mileage Comparision vs Cars Graph");
+
+
+
+      x.domain(data.map(function(d) { return d.VehicleName; }));
+      x.rangeRoundBands([0, width], 0);
+
+      newx=d3.scale.ordinal().rangeRoundBands([60+width/3, 100+width/1.9], .1).domain(data.map(function(d) { return d.VehicleName; }));
+
+      var hwympg = mpgsvg.append("g")
+      .attr("transform", function(d) { return "translate(0,0)"; });
+
+      hwympg.append("text")
+      .text("Hwy MPG")
+	  .style("font-size","12px")
+	  .style("font-weight","bold")
+      .attr("transform","translate(240,290)");
+
+     hwympg.selectAll(".bar")
+      .data(data)
+      .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return newx(d.VehicleName); })
+      .attr("width", newx.rangeBand())
+      .attr("y", function(d) { 
+        return y(d.HwyMPGmax); 
+      })
+      .attr("height", function(d) { return height - y(d.HwyMPGmax -d.HwyMPGmin); })
+      .attr("fill",function(d,i){
+        return color[i];
+      });
+
+	  avgH=mpgsvg.selectAll("avgH")
+    .data(data)
+	.enter().append("rect")
+    .attr("y", function(d) { return y(d.HwyMPG); })
+    .attr("x", function(d) { return newx(d.VehicleName); })
+	.style("fill",'#5c5c5c')
+	.attr("height", 4)
+    .attr("width", newx.rangeBand());
+	
+
+      var legend = mpgsvg.selectAll(".legend")
+      .data(function(d){
+        var vehicleNames=[];
+        for(var i=0;i<data.length;i++){
+          vehicleNames[i]=data[i].VehicleName;
+        }
+        return vehicleNames;
+      })
+      .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(-20," + ((i * 15) -20) + ")"; });
+
+      legend.append("rect")
+      .attr("x", width - 50)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", function(d,i){
+        return color[i];
+      });
+
+      legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "start")
+      .text(function(d) { return d; });
+   
+});
+
+function wrap(text, width) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+      }
+    }
+  });
+}
+
+</script>
+</html>

@@ -1,0 +1,27 @@
+This table is designed considering end users(Buyers) with a filter where retail price is > $70000.
+
+	* Cars are grouped as sports and non sports.
+	* Both the group has retail price in sorted order so that buyer can easily identify his price range.
+	* Qualification criteria i.e. retail price is highlighted so, that it can be easily distinguished as important feature.
+	* Useless quantities which is not important for a buyer is not included so that user can only focus on required parameter to make decision.
+	* Important features to users like mileage are reordered in priority.
+
+Size of graph was set such that it properly uses the available screen space and has
+proper margin so that no two graph data overlaps and create confusion.
+
+Choice of color was made by refering color brewer with following consideration.
+	* Data is easily visible 
+	* Data is easily distinguishable
+	* For mpg comparision graph color choice was more important so that neighbouring bars can be easily distinguished.
+
+
+While analyzing all cars of various companies on various parameters it would be 
+important to know the range and average values of those parameters. To compare given parameters 
+I have calculated min, max and the average value of the parameters and then compared their values by scatter plot.
+
+To compare Mileage box plot have been used as it is an effective way to show range of values.
+Also use of box plot is better choice for last graph because using scatter plot will create
+confusion due to too many discrete points side by side.
+ 
+
+
